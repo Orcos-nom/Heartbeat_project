@@ -7,8 +7,8 @@
 <style>
 body{
     font-family: Arial;
-    background:#f4f4f4;
     text-align:center;
+    background:#f2f2f2;
     margin-top:80px;
 }
 
@@ -26,17 +26,12 @@ button{
     margin:10px;
     font-size:16px;
     border:none;
-    border-radius:6px;
+    border-radius:5px;
     cursor:pointer;
 }
 
-#start{background:#28a745;color:white;}
-#stop{background:#dc3545;color:white;}
-
-#status{
-    margin-top:15px;
-    font-weight:bold;
-}
+#start{background:green;color:white;}
+#stop{background:red;color:white;}
 
 audio{
     margin-top:20px;
@@ -54,9 +49,9 @@ audio{
 <button id="start">Start Recording</button>
 <button id="stop" disabled>Stop Recording</button>
 
-<audio id="audioPlayback" controls></audio>
+<p id="status">Press Start</p>
 
-<p id="status">Click start to record</p>
+<audio id="player" controls></audio>
 
 </div>
 
@@ -67,66 +62,60 @@ let chunks = [];
 
 const startBtn = document.getElementById("start");
 const stopBtn = document.getElementById("stop");
-const statusText = document.getElementById("status");
-const audioPlayer = document.getElementById("audioPlayback");
+const status = document.getElementById("status");
+const player = document.getElementById("player");
 
-startBtn.onclick = async () => {
-
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-        statusText.innerText = "Microphone API not supported in this browser";
-        return;
-    }
+startBtn.onclick = async function(){
 
     try{
 
-        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
 
         recorder = new MediaRecorder(stream);
 
         recorder.start();
-        statusText.innerText = "Recording...";
+
+        status.innerText = "Recording...";
 
         startBtn.disabled = true;
         stopBtn.disabled = false;
 
-        recorder.ondataavailable = e => {
+        recorder.ondataavailable = e=>{
             chunks.push(e.data);
         };
 
-    }catch(err){
+    }
+    catch(error){
 
-        console.error(err);
+        status.innerText = "Microphone permission denied or not available";
 
-        statusText.innerText = "Microphone access denied or not available";
+        console.error(error);
     }
 };
 
-stopBtn.onclick = () => {
+stopBtn.onclick = function(){
 
     recorder.stop();
 
     startBtn.disabled = false;
     stopBtn.disabled = true;
 
-    recorder.onstop = async () => {
+    recorder.onstop = async function(){
 
         const blob = new Blob(chunks,{type:"audio/webm"});
         chunks = [];
 
-        const audioURL = URL.createObjectURL(blob);
-        audioPlayer.src = audioURL;
-
-        statusText.innerText = "Uploading audio...";
+        player.src = URL.createObjectURL(blob);
 
         const formData = new FormData();
-        formData.append("audio_data", blob, "recording.webm");
+        formData.append("audio_data",blob,"recording.webm");
 
         await fetch("/upload",{
             method:"POST",
             body:formData
         });
 
-        statusText.innerText = "Audio uploaded successfully";
+        status.innerText = "Audio uploaded";
     };
 };
 
