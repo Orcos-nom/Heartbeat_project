@@ -37,7 +37,7 @@ document.getElementById("stop").onclick = () => {
             body: formData
         });
 
-        alert("Audio saved");
+        alert("Audio uploaded to GitHub");
 
     };
 

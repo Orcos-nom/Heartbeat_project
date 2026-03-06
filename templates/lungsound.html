@@ -2,24 +2,152 @@
 <html>
 
 <head>
-    <title>Lung Sound Recorder</title>
-    <link rel="stylesheet" href="/static/style.css">
+
+    <title>Lung Sound Recording</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #eef6ff;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 80px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .start {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .stop {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .ai {
+            background: #3498db;
+            color: white;
+        }
+
+        audio {
+            margin-top: 20px;
+        }
+
+        #result {
+            margin-top: 30px;
+            font-size: 20px;
+        }
+    </style>
+
 </head>
 
 <body>
 
-    <h2>Lung Sound Recording</h2>
+    <h1>Lung Sound Recording</h1>
 
-    <button id="start">Start Recording</button>
-    <button id="stop">Stop Recording</button>
+    <div class="container">
 
-    <audio id="audio" controls></audio>
+        <button class="start" id="start">Start Recording</button>
+        <button class="stop" id="stop">Stop Recording</button>
+
+        <br>
+
+        <audio id="audio" controls></audio>
+
+        <br>
+
+        <button class="ai" id="sendAI">Send to AI</button>
+
+        <div id="result"></div>
+
+    </div>
+
 
     <script>
-        const uploadType = "lung";
-    </script>
 
-    <script src="/static/recorder.js"></script>
+        let mediaRecorder
+        let chunks = []
+
+        const startBtn = document.getElementById("start")
+        const stopBtn = document.getElementById("stop")
+        const resultBox = document.getElementById("result")
+
+        startBtn.onclick = async () => {
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+            mediaRecorder = new MediaRecorder(stream)
+
+            mediaRecorder.start()
+
+            chunks = []
+
+            mediaRecorder.ondataavailable = e => {
+                chunks.push(e.data)
+            }
+
+            resultBox.innerHTML = "Recording..."
+        }
+
+        stopBtn.onclick = () => {
+
+            mediaRecorder.stop()
+
+            mediaRecorder.onstop = async () => {
+
+                const blob = new Blob(chunks, { type: "audio/wav" })
+
+                document.getElementById("audio").src = URL.createObjectURL(blob)
+
+                const formData = new FormData()
+
+                formData.append("file", blob, "lung.wav")
+
+                await fetch("/upload_lung", {
+                    method: "POST",
+                    body: formData
+                })
+
+                resultBox.innerHTML = "Audio uploaded. Click Send to AI."
+
+            }
+
+        }
+
+        document.getElementById("sendAI").onclick = async () => {
+
+            resultBox.innerHTML = "Analyzing lung sound... please wait"
+
+            const response = await fetch("/predict_lung")
+
+            const data = await response.json()
+
+            if (data.error) {
+
+                resultBox.innerHTML = "Error: " + data.error
+
+            } else {
+
+                resultBox.innerHTML =
+                    "<b>Disease:</b> " + data.disease +
+                    "<br><b>Confidence:</b> " + data.confidence
+
+            }
+
+        }
+
+    </script>
 
 </body>
 
