@@ -6,36 +6,41 @@
 
 <style>
 body{
-    font-family: Arial;
-    text-align:center;
-    background:#f2f2f2;
-    margin-top:80px;
+font-family:Arial;
+text-align:center;
+margin-top:80px;
+background:#f3f3f3;
 }
 
 .container{
-    background:white;
-    width:420px;
-    margin:auto;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
+background:white;
+width:420px;
+margin:auto;
+padding:30px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
 button{
-    padding:10px 20px;
-    margin:10px;
-    font-size:16px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
+padding:10px 20px;
+margin:10px;
+font-size:16px;
+border:none;
+border-radius:6px;
+cursor:pointer;
 }
 
 #start{background:green;color:white;}
 #stop{background:red;color:white;}
 
 audio{
-    margin-top:20px;
-    width:100%;
+width:100%;
+margin-top:20px;
+}
+
+#status{
+margin-top:15px;
+font-weight:bold;
 }
 </style>
 </head>
@@ -49,74 +54,85 @@ audio{
 <button id="start">Start Recording</button>
 <button id="stop" disabled>Stop Recording</button>
 
-<p id="status">Press Start</p>
+<p id="status">Press Start to record</p>
 
-<audio id="player" controls></audio>
+<audio id="audioPlayer" controls></audio>
 
 </div>
 
 <script>
 
 let recorder;
-let chunks = [];
+let chunks=[];
 
-const startBtn = document.getElementById("start");
-const stopBtn = document.getElementById("stop");
-const status = document.getElementById("status");
-const player = document.getElementById("player");
+const startBtn=document.getElementById("start");
+const stopBtn=document.getElementById("stop");
+const status=document.getElementById("status");
+const player=document.getElementById("audioPlayer");
 
-startBtn.onclick = async function(){
+startBtn.onclick=async ()=>{
 
-    try{
+if(!navigator.mediaDevices){
+status.innerText="Browser does not support microphone API";
+return;
+}
 
-        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+if(!window.MediaRecorder){
+status.innerText="Recording not supported in this browser";
+return;
+}
 
-        recorder = new MediaRecorder(stream);
+try{
 
-        recorder.start();
+const stream=await navigator.mediaDevices.getUserMedia({audio:true});
 
-        status.innerText = "Recording...";
+recorder=new MediaRecorder(stream);
 
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
+recorder.start();
 
-        recorder.ondataavailable = e=>{
-            chunks.push(e.data);
-        };
+status.innerText="Recording...";
 
-    }
-    catch(error){
+startBtn.disabled=true;
+stopBtn.disabled=false;
 
-        status.innerText = "Microphone permission denied or not available";
-
-        console.error(error);
-    }
+recorder.ondataavailable=e=>{
+chunks.push(e.data);
 };
 
-stopBtn.onclick = function(){
+}catch(err){
 
-    recorder.stop();
+status.innerText="Microphone access denied or unavailable";
 
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
+console.error(err);
 
-    recorder.onstop = async function(){
+}
+};
 
-        const blob = new Blob(chunks,{type:"audio/webm"});
-        chunks = [];
+stopBtn.onclick=()=>{
 
-        player.src = URL.createObjectURL(blob);
+recorder.stop();
 
-        const formData = new FormData();
-        formData.append("audio_data",blob,"recording.webm");
+startBtn.disabled=false;
+stopBtn.disabled=true;
 
-        await fetch("/upload",{
-            method:"POST",
-            body:formData
-        });
+recorder.onstop=async()=>{
 
-        status.innerText = "Audio uploaded";
-    };
+const blob=new Blob(chunks,{type:"audio/webm"});
+chunks=[];
+
+player.src=URL.createObjectURL(blob);
+
+const formData=new FormData();
+formData.append("audio_data",blob,"recording.webm");
+
+await fetch("/upload",{
+method:"POST",
+body:formData
+});
+
+status.innerText="Audio uploaded";
+
+};
 };
 
 </script>
