@@ -3,13 +3,12 @@ import base64
 import requests
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
+from pydub import AudioSegment
+from io import BytesIO
 
 app = Flask(__name__)
 
-# Read token from environment variable
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-
-# Repository information
 REPO = "Orcos-nom/Heartbeat_project"
 BRANCH = "main"
 
@@ -26,13 +25,26 @@ def upload():
         return jsonify({"error": "No audio received"}), 400
 
     audio_file = request.files["audio_data"]
+
+    # Read audio bytes
     audio_bytes = audio_file.read()
 
-    # Generate unique filename
-    filename = "audio_files/recording_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".webm"
+    try:
+        # Convert webm to wav
+        audio = AudioSegment.from_file(BytesIO(audio_bytes), format="webm")
 
-    # Convert audio to base64
-    encoded_audio = base64.b64encode(audio_bytes).decode("utf-8")
+        wav_buffer = BytesIO()
+        audio.export(wav_buffer, format="wav")
+        wav_buffer.seek(0)
+
+        wav_bytes = wav_buffer.read()
+
+    except Exception as e:
+        return jsonify({"error": f"Conversion failed: {str(e)}"})
+
+    filename = "audio_files/recording_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".wav"
+
+    encoded_audio = base64.b64encode(wav_bytes).decode("utf-8")
 
     url = f"https://api.github.com/repos/{REPO}/contents/{filename}"
 
@@ -42,33 +54,20 @@ def upload():
     }
 
     data = {
-        "message": "Upload audio recording",
+        "message": "Upload WAV audio recording",
         "content": encoded_audio,
         "branch": BRANCH
     }
 
-    try:
-        response = requests.put(url, json=data, headers=headers)
+    response = requests.put(url, json=data, headers=headers)
 
-        print("GitHub Status:", response.status_code)
-        print("GitHub Response:", response.text)
+    print("GitHub Status:", response.status_code)
+    print("GitHub Response:", response.text)
 
-        if response.status_code in [200, 201]:
-            return jsonify({
-                "status": "success",
-                "file": filename
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "details": response.text
-            })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        })
+    if response.status_code in [200, 201]:
+        return jsonify({"status": "saved", "file": filename})
+    else:
+        return jsonify({"error": response.text})
 
 
 if __name__ == "__main__":
