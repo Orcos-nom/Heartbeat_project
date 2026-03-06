@@ -2,131 +2,41 @@
 <html>
 
 <head>
-
     <title>SmartStetho</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
-    <div class="bg-animation"></div>
+    <h1>SmartStetho AI Diagnostic</h1>
 
-    <header class="navbar">
-
-        <div class="logo">
-            <i class="fa-solid fa-stethoscope"></i>
-            SmartStetho
-        </div>
-
-        <div class="assistant-btn" onclick="toggleChat()">
-            <i class="fa-solid fa-robot"></i>
-        </div>
-
-    </header>
-
-
-    <section class="hero">
-
-        <h1 class="title">SmartStetho</h1>
-
-        <p class="subtitle">
-            AI Powered Heart & Lung Monitoring
-        </p>
-
-    </section>
-
-
-    <section class="dashboard">
-
+    <div class="container">
 
         <a href="/heartbeat" class="card">
-
-            <div class="icon">
-                <i class="fa-solid fa-heart-pulse"></i>
-            </div>
-
-            <h3>Heartbeat Record</h3>
-
-            <p>Analyze heart sounds using AI</p>
-
+            <h2>Heartbeat Recording</h2>
         </a>
-
-
 
         <a href="/lungsound" class="card">
-
-            <div class="icon">
-                <i class="fa-solid fa-lungs"></i>
-            </div>
-
-            <h3>Lung Sound</h3>
-
-            <p>Detect breathing disorders</p>
-
+            <h2>Lung Sound Recording</h2>
         </a>
 
+    </div>
 
+    <div class="chatbot">
 
-        <a href="/medic_store" class="card">
+        <button onclick="toggleChat()">Chat</button>
 
-            <div class="icon">
-                <i class="fa-solid fa-capsules"></i>
-            </div>
+        <div id="chatbox">
+            <div id="messages"></div>
 
-            <h3>Medicine Store</h3>
-
-            <p>Order medicines easily</p>
-
-        </a>
-
-
-
-        <a href="/hospital" class="card">
-
-            <div class="icon">
-                <i class="fa-solid fa-hospital"></i>
-            </div>
-
-            <h3>Nearby Hospital</h3>
-
-            <p>Find doctors near you</p>
-
-        </a>
-
-
-    </section>
-
-
-
-    <div id="assistant">
-
-        <div class="assistant-header">
-
-            <i class="fa-solid fa-user-doctor"></i>
-            SmartStetho Assistant
-
-        </div>
-
-        <div id="chat-messages"></div>
-
-        <div class="chat-input">
-
-            <input id="chat-input-box" placeholder="Ask a health question...">
-
-            <button onclick="sendMessage()">
-                <i class="fa-solid fa-paper-plane"></i>
-            </button>
+            <input id="input">
+            <button onclick="sendMessage()">Send</button>
 
         </div>
 
     </div>
 
-
-    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script src="/static/chatbot.js"></script>
 
 </body>
 
