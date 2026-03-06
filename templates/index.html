@@ -1,57 +1,122 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Audio Recorder</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f2f2f2;
+    text-align:center;
+    margin-top:80px;
+}
+
+.container{
+    background:white;
+    width:400px;
+    margin:auto;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+button{
+    padding:10px 20px;
+    margin:10px;
+    border:none;
+    border-radius:5px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#start{ background:#28a745; color:white; }
+#stop{ background:#dc3545; color:white; }
+
+audio{
+    margin-top:20px;
+    width:100%;
+}
+
+#status{
+    margin-top:15px;
+    font-weight:bold;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Record Audio</h2>
+<div class="container">
 
-<button onclick="startRecording()">Start Recording</button>
-<button onclick="stopRecording()">Stop Recording</button>
+<h2>Audio Recorder</h2>
+
+<button id="start">Start Recording</button>
+<button id="stop" disabled>Stop Recording</button>
+
+<br>
+
+<audio id="audioPlayback" controls></audio>
 
 <p id="status"></p>
 
+</div>
+
 <script>
 
-let mediaRecorder;
-let audioChunks = [];
+let recorder;
+let chunks = [];
 
-async function startRecording() {
+const startBtn = document.getElementById("start");
+const stopBtn = document.getElementById("stop");
+const audioPlayer = document.getElementById("audioPlayback");
+const statusText = document.getElementById("status");
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+startBtn.onclick = async () => {
 
-    mediaRecorder = new MediaRecorder(stream);
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
 
-    mediaRecorder.start();
-    document.getElementById("status").innerText = "Recording...";
+    recorder = new MediaRecorder(stream);
 
-    mediaRecorder.ondataavailable = event => {
-        audioChunks.push(event.data);
+    recorder.start();
+    statusText.innerText = "Recording...";
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    recorder.ondataavailable = e => {
+        chunks.push(e.data);
     };
-}
+};
 
-function stopRecording() {
+stopBtn.onclick = () => {
 
-    mediaRecorder.stop();
+    recorder.stop();
 
-    mediaRecorder.onstop = async () => {
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
 
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        audioChunks = [];
+    recorder.onstop = async () => {
+
+        const blob = new Blob(chunks,{type:"audio/wav"});
+        chunks = [];
+
+        const audioURL = URL.createObjectURL(blob);
+        audioPlayer.src = audioURL;
+
+        statusText.innerText = "Uploading audio...";
 
         const formData = new FormData();
-        formData.append("audio_data", audioBlob, "recorded_audio.wav");
+        formData.append("audio_data", blob, "recording.wav");
 
-        await fetch("/upload", {
-            method: "POST",
-            body: formData
+        await fetch("/upload",{
+            method:"POST",
+            body:formData
         });
 
-        document.getElementById("status").innerText = "Audio uploaded";
+        statusText.innerText = "Audio uploaded successfully";
     };
-}
+};
 
 </script>
 
