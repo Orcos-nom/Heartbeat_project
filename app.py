@@ -1,11 +1,14 @@
 import os
+import base64
+import requests
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "recordings"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+REPO = "Orcos-nom/Heartbeat_project"
+BRANCH = "main"
 
 @app.route("/")
 def home():
@@ -13,31 +16,37 @@ def home():
 
 
 @app.route("/upload", methods=["POST"])
-def upload_audio():
+def upload():
+
     if "audio_data" not in request.files:
-        return jsonify({"status": "error", "message": "No audio received"}), 400
+        return "No audio"
 
-    audio = request.files["audio_data"]
+    audio = request.files["audio_data"].read()
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"recording_{timestamp}.wav"
+    filename = "audio_files/recording_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".webm"
 
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    audio.save(filepath)
+    encoded = base64.b64encode(audio).decode()
 
-    print("Saved:", filepath)
+    url = f"https://api.github.com/repos/{REPO}/contents/{filename}"
 
-    return jsonify({
-        "status": "success",
-        "file": filename
-    })
+    data = {
+        "message": "upload audio",
+        "content": encoded,
+        "branch": BRANCH
+    }
 
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}"
+    }
 
-@app.route("/recordings/<filename>")
-def get_recording(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    response = requests.put(url, json=data, headers=headers)
+
+    if response.status_code == 201:
+        return jsonify({"status":"saved","file":filename})
+    else:
+        return jsonify({"error":response.text})
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    port = int(os.environ.get("PORT",5000))
+    app.run(host="0.0.0.0",port=port)
