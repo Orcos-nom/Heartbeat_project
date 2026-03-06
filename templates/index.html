@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Audio Recorder</title>
+</head>
+
+<body>
+
+<h2>Record Audio</h2>
+
+<button onclick="startRecording()">Start Recording</button>
+<button onclick="stopRecording()">Stop Recording</button>
+
+<p id="status"></p>
+
+<script>
+
+let mediaRecorder;
+let audioChunks = [];
+
+async function startRecording() {
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.start();
+    document.getElementById("status").innerText = "Recording...";
+
+    mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+    };
+}
+
+function stopRecording() {
+
+    mediaRecorder.stop();
+
+    mediaRecorder.onstop = async () => {
+
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        audioChunks = [];
+
+        const formData = new FormData();
+        formData.append("audio_data", audioBlob, "recorded_audio.wav");
+
+        await fetch("/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        document.getElementById("status").innerText = "Audio uploaded";
+    };
+}
+
+</script>
+
+</body>
+</html>
