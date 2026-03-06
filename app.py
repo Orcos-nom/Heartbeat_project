@@ -6,15 +6,19 @@ import requests
 
 app = Flask(__name__)
 
-# ---------------- CONFIG ----------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads", "audio")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+ML_SCRIPT = os.path.abspath(
+    os.path.join(BASE_DIR, "..", "smartstetho_ML", "src", "predict.py")
+)
 
 OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"
 
-UPLOAD_FOLDER = "uploads/audio"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-
-# ---------------- HOME PAGE ----------------
+# ---------------- HOME ----------------
 
 @app.route("/")
 def home():
@@ -42,7 +46,7 @@ def medic_store():
     return render_template("medic_store.html")
 
 
-# ---------------- HOSPITAL PAGE ----------------
+# ---------------- HOSPITAL ----------------
 
 @app.route("/hospital")
 def hospital():
@@ -54,7 +58,7 @@ def hospital():
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
 
-    user_message = request.json.get("message")
+    message = request.json.get("message")
 
     url = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -66,14 +70,8 @@ def chatbot():
     payload = {
         "model": "openai/gpt-3.5-turbo",
         "messages": [
-            {
-                "role": "system",
-                "content": "You are SmartStetho medical assistant helping users with heart and lung health."
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
+            {"role":"system","content":"You are SmartStetho medical assistant."},
+            {"role":"user","content":message}
         ]
     }
 
@@ -86,29 +84,20 @@ def chatbot():
     return jsonify({"reply": reply})
 
 
-# ---------------- AUDIO UPLOAD ----------------
+# ---------------- HEARTBEAT ML ROUTE ----------------
 
 @app.route("/upload_heartbeat", methods=["POST"])
 def upload_heartbeat():
 
-    if "audio" not in request.files:
-        return jsonify({"error": "No audio file"}), 400
-
-    audio = request.files["audio"]
-
-    filepath = os.path.join(UPLOAD_FOLDER, "recorded.wav")
-
-    audio.save(filepath)
-
-    ml_path = os.path.abspath(filepath)
-
     try:
 
-        result = subprocess.check_output([
-            "python",
-            "SMARTSTETHO_ML/src/predict.py",
-            ml_path
-        ])
+        audio = request.files["audio"]
+
+        filepath = os.path.join(UPLOAD_FOLDER, "heartbeat.webm")
+
+        audio.save(filepath)
+
+        result = subprocess.check_output(["python", ML_SCRIPT])
 
         result = result.decode("utf-8")
 
@@ -118,19 +107,10 @@ def upload_heartbeat():
 
     except Exception as e:
 
-        return jsonify({
-            "error": str(e)
-        })
+        return jsonify({"error": str(e)})
 
 
-# ---------------- RESULT PAGE ----------------
-
-@app.route("/result")
-def result():
-    return render_template("result.html")
-
-
-# ---------------- RUN SERVER ----------------
+# ---------------- RUN ----------------
 
 if __name__ == "__main__":
     app.run(debug=True)
