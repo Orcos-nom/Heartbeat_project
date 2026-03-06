@@ -1,0 +1,162 @@
+body {
+
+    margin: 0;
+
+    font-family: Segoe UI;
+
+    background: linear-gradient(135deg, #4f46e5, #9333ea);
+
+    color: white;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    height: 100vh;
+
+}
+
+
+.container {
+
+    text-align: center;
+
+    background: rgba(255, 255, 255, 0.1);
+
+    padding: 50px;
+
+    border-radius: 25px;
+
+    backdrop-filter: blur(15px);
+
+}
+
+
+.buttons {
+
+    margin-top: 30px;
+
+    display: flex;
+
+    gap: 20px;
+
+    justify-content: center;
+
+}
+
+
+button {
+
+    padding: 14px 30px;
+
+    border: none;
+
+    border-radius: 30px;
+
+    font-size: 16px;
+
+    cursor: pointer;
+
+    background: white;
+
+    color: #6d28d9;
+
+    transition: 0.3s;
+
+}
+
+
+button:hover {
+
+    transform: scale(1.1);
+
+}
+
+
+button:disabled {
+
+    opacity: 0.4;
+
+    cursor: not-allowed;
+
+}
+
+
+.visual {
+
+    margin: 40px;
+
+}
+
+
+.pulse {
+
+    width: 120px;
+    height: 120px;
+
+    background: red;
+
+    border-radius: 50%;
+
+    margin: auto;
+
+    animation: beat 1s infinite;
+
+}
+
+
+@keyframes beat {
+
+    0% {
+        transform: scale(1)
+    }
+
+    50% {
+        transform: scale(1.2)
+    }
+
+    100% {
+        transform: scale(1)
+    }
+
+}
+
+
+.loader {
+
+    border: 8px solid rgba(255, 255, 255, 0.2);
+
+    border-top: 8px solid white;
+
+    border-radius: 50%;
+
+    width: 70px;
+    height: 70px;
+
+    margin: 40px auto;
+
+    animation: spin 1s linear infinite;
+
+}
+
+
+@keyframes spin {
+
+    0% {
+        transform: rotate(0)
+    }
+
+    100% {
+        transform: rotate(360deg)
+    }
+
+}
+
+
+.hidden {
+
+    display: none;
+
+}

@@ -1,52 +1,136 @@
-import os
-import base64
-import requests
-from datetime import datetime
 from flask import Flask, render_template, request, jsonify
+import os
+import subprocess
+import json
+import requests
 
 app = Flask(__name__)
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-REPO = "Orcos-nom/Heartbeat_project"
-BRANCH = "main"
+# ---------------- CONFIG ----------------
+
+OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"
+
+UPLOAD_FOLDER = "uploads/audio"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+# ---------------- HOME PAGE ----------------
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/upload", methods=["POST"])
-def upload():
 
-    if "audio_data" not in request.files:
-        return jsonify({"error": "No audio received"}), 400
+# ---------------- HEARTBEAT PAGE ----------------
 
-    audio_file = request.files["audio_data"]
-    audio_bytes = audio_file.read()
+@app.route("/heartbeat")
+def heartbeat():
+    return render_template("heartbeat.html")
 
-    filename = "audio_files/recording_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".webm"
 
-    encoded_audio = base64.b64encode(audio_bytes).decode("utf-8")
+# ---------------- LUNG PAGE ----------------
 
-    url = f"https://api.github.com/repos/{REPO}/contents/{filename}"
+@app.route("/lungsound")
+def lungsound():
+    return render_template("lungsound.html")
+
+
+# ---------------- MEDIC STORE ----------------
+
+@app.route("/medic_store")
+def medic_store():
+    return render_template("medic_store.html")
+
+
+# ---------------- HOSPITAL PAGE ----------------
+
+@app.route("/hospital")
+def hospital():
+    return render_template("hospital.html")
+
+
+# ---------------- CHATBOT ----------------
+
+@app.route("/chatbot", methods=["POST"])
+def chatbot():
+
+    user_message = request.json.get("message")
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
     }
 
-    data = {
-        "message": "Upload audio recording",
-        "content": encoded_audio,
-        "branch": BRANCH
+    payload = {
+        "model": "openai/gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are SmartStetho medical assistant helping users with heart and lung health."
+            },
+            {
+                "role": "user",
+                "content": user_message
+            }
+        ]
     }
 
-    response = requests.put(url, json=data, headers=headers)
+    response = requests.post(url, headers=headers, json=payload)
 
-    if response.status_code in [200, 201]:
-        return jsonify({"status": "saved", "file": filename})
-    else:
-        return jsonify({"error": response.text})
+    data = response.json()
+
+    reply = data["choices"][0]["message"]["content"]
+
+    return jsonify({"reply": reply})
+
+
+# ---------------- AUDIO UPLOAD ----------------
+
+@app.route("/upload_heartbeat", methods=["POST"])
+def upload_heartbeat():
+
+    if "audio" not in request.files:
+        return jsonify({"error": "No audio file"}), 400
+
+    audio = request.files["audio"]
+
+    filepath = os.path.join(UPLOAD_FOLDER, "recorded.wav")
+
+    audio.save(filepath)
+
+    ml_path = os.path.abspath(filepath)
+
+    try:
+
+        result = subprocess.check_output([
+            "python",
+            "SMARTSTETHO_ML/src/predict.py",
+            ml_path
+        ])
+
+        result = result.decode("utf-8")
+
+        data = json.loads(result)
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        })
+
+
+# ---------------- RESULT PAGE ----------------
+
+@app.route("/result")
+def result():
+    return render_template("result.html")
+
+
+# ---------------- RUN SERVER ----------------
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
