@@ -31,36 +31,50 @@ def upload_to_github(file, prefix):
 
     print("\nUploading audio to GitHub...")
 
-    file.seek(0)   # <-- ADD THIS LINE
+    try:
+        file.seek(0)
 
-    content = base64.b64encode(file.read()).decode()
+        content = base64.b64encode(file.read()).decode()
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    filename = f"{prefix}_{timestamp}.wav"
+        filename = f"{prefix}_{timestamp}.wav"
 
-    path = f"recordings/{filename}"
+        path = f"recordings/{filename}"
 
-    url = f"https://api.github.com/repos/{REPO}/contents/{path}"
+        url = f"https://api.github.com/repos/{REPO}/contents/{path}"
 
-    data = {
-        "message": f"upload {filename}",
-        "content": content,
-        "branch": BRANCH
-    }
+        headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json"
+        }
 
-    headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json"
-    }
+        # check if file already exists to get SHA
+        get_resp = requests.get(url, headers=headers)
 
-    response = requests.put(url, json=data, headers=headers)
+        payload = {
+            "message": f"upload {filename}",
+            "content": content,
+            "branch": BRANCH
+        }
 
-    if response.status_code == 201:
-        print("Upload successful:", filename)
-        return True
-    else:
-        print("Upload failed:", response.text)
+        if get_resp.status_code == 200:
+            sha = get_resp.json()["sha"]
+            payload["sha"] = sha
+
+        response = requests.put(url, json=payload, headers=headers)
+
+        print("GitHub status:", response.status_code)
+        print("GitHub response:", response.text)
+
+        if response.status_code in [200, 201]:
+            print("Upload successful:", filename)
+            return True
+
+        return False
+
+    except Exception as e:
+        print("Upload error:", e)
         return False
 
 
@@ -94,6 +108,22 @@ def med_store():
 @app.route("/hospital")
 def hospital():
     return render_template("hospital.html")
+
+
+# ---------------- API STATUS ROUTE (NEW) ----------------
+
+@app.route("/api_status")
+def api_status():
+    return jsonify({
+        "status": "SmartStetho AI Server Running",
+        "routes": [
+            "/predict_heart",
+            "/predict_lung",
+            "/chat",
+            "/upload_heartbeat",
+            "/upload_lung"
+        ]
+    })
 
 
 # ---------------- Upload Routes ----------------
@@ -229,4 +259,10 @@ if __name__ == "__main__":
     print(" SmartStetho AI Server Started ")
     print("================================\n")
 
-    app.run(debug=True)
+    print("Main App URL:")
+    print("http://127.0.0.1:5000")
+
+    print("\nAPI Status URL:")
+    print("http://127.0.0.1:5000/api_status\n")
+
+    app.run(host="0.0.0.0", port=5000, debug=True)
