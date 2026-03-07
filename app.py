@@ -4,14 +4,20 @@ import json
 import base64
 import requests
 import datetime
+import sys
+import os
 
 app = Flask(__name__)
 
-# ---------------- GitHub Settings ----------------
+# ---------------- GitHub Configuration ----------------
 
-GITHUB_TOKEN = "YOUR_GITHUB_TOKEN"
+GITHUB_TOKEN = "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"
 REPO = "Orcos-nom/Heartbeat_project"
 BRANCH = "main"
+
+# ---------------- OpenRouter Chatbot ----------------
+
+OPENROUTER_API_KEY = "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"
 
 # ---------------- Model Script Paths ----------------
 
@@ -56,7 +62,7 @@ def upload_to_github(file, prefix):
         return False
 
 
-# ---------------- Web Pages ----------------
+# ---------------- Pages ----------------
 
 @app.route("/")
 def home():
@@ -71,6 +77,21 @@ def heartbeat():
 @app.route("/lungsound")
 def lungsound():
     return render_template("lungsound.html")
+
+
+@app.route("/report")
+def report():
+    return render_template("report.html")
+
+
+@app.route("/med_store")
+def med_store():
+    return render_template("med_store.html")
+
+
+@app.route("/hospital")
+def hospital():
+    return render_template("hospital.html")
 
 
 # ---------------- Upload Routes ----------------
@@ -105,36 +126,34 @@ def upload_lung():
         return jsonify({"status": "error"})
 
 
-# ---------------- Run Prediction ----------------
+# ---------------- Run AI Model ----------------
 
 def run_prediction(script_path):
 
-    print("\n====================================")
-    print("Starting AI Model:", script_path)
-    print("====================================")
+    print("\n==============================")
+    print("Running AI Model:", script_path)
+    print("==============================")
 
     try:
 
-        process = subprocess.Popen(
-            ["python", script_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
+        result = subprocess.run(
+            [sys.executable, script_path],
+            capture_output=True,
+            text=True,
+            cwd=os.path.dirname(script_path)
         )
 
-        print("Model process started... waiting for output")
-
-        stdout, stderr = process.communicate()
-
-        print("\nModel finished running")
+        stdout = result.stdout
+        stderr = result.stderr
 
         if stderr:
-            print("\nModel error output:")
+            print("Model error:")
             print(stderr)
 
-        print("\nModel stdout:")
+        print("Model output:")
         print(stdout)
 
+        # TensorFlow prints warnings before JSON
         lines = stdout.strip().split("\n")
 
         for line in reversed(lines):
@@ -143,10 +162,9 @@ def run_prediction(script_path):
             except:
                 continue
 
-        return {"error": "Prediction failed"}
+        return {"error": "Prediction JSON not found"}
 
     except Exception as e:
-        print("Execution error:", e)
         return {"error": str(e)}
 
 
@@ -166,6 +184,39 @@ def predict_lung():
     result = run_prediction(LUNG_MODEL_SCRIPT)
 
     return jsonify(result)
+
+
+# ---------------- Chatbot Route ----------------
+
+@app.route("/chat", methods=["POST"])
+def chat():
+
+    user_message = request.json.get("message")
+
+    response = requests.post(
+
+        "https://openrouter.ai/api/v1/chat/completions",
+
+        headers={
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json"
+        },
+
+        json={
+            "model": "openai/gpt-3.5-turbo",
+            "messages": [
+                {"role": "system", "content": "You are a helpful medical assistant."},
+                {"role": "user", "content": user_message}
+            ]
+        }
+
+    )
+
+    data = response.json()
+
+    reply = data["choices"][0]["message"]["content"]
+
+    return jsonify({"reply": reply})
 
 
 # ---------------- Start Server ----------------

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>SmartStetho Pharmacy</title>
+
+    <link rel="stylesheet" href="/static/med_store.css">
+
+</head>
+
+<body>
+
+    <header class="navbar">
+
+        <div class="logo">SmartStetho Pharmacy</div>
+
+        <input class="search" placeholder="Search medicines, vitamins, devices...">
+
+        <div class="cart">
+            🛒 Cart <span id="cartCount">0</span>
+        </div>
+
+    </header>
+
+
+
+    <section class="hero">
+
+        <div class="hero-text">
+
+            <h1>Online Medical Store</h1>
+
+            <p>Order medicines, healthcare products and medical devices.</p>
+
+            <button>Shop Medicines</button>
+
+        </div>
+
+        <img class="hero-img" src="/static/med_images/pharmacy_banner.png">
+
+    </section>
+
+
+
+    <section class="categories">
+
+        <h2>Shop by Category</h2>
+
+        <div class="cat-grid">
+
+            <div class="cat">Pain Relief</div>
+            <div class="cat">Heart Care</div>
+            <div class="cat">Respiratory</div>
+            <div class="cat">Vitamins</div>
+            <div class="cat">Diabetes</div>
+            <div class="cat">Medical Devices</div>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="products">
+
+        <h2>Popular Medicines</h2>
+
+        <div class="product-grid">
+
+
+            <div class="product">
+
+                <img src="/static/med_images/paracetamol.png">
+
+                <h3>Paracetamol</h3>
+
+                <div class="rating">⭐⭐⭐⭐☆</div>
+
+                <p>500mg Tablets</p>
+
+                <div class="price">$5.99</div>
+
+                <button onclick="addCart()">Add to Cart</button>
+
+            </div>
+
+
+
+            <div class="product">
+
+                <img src="{{ url_for('static', filename='med_images/cough_syrup.png') }}">
+
+                <h3>Cough Syrup</h3>
+
+                <div class="rating">⭐⭐⭐⭐⭐</div>
+
+                <p>Respiratory Relief</p>
+
+                <div class="price">$9.50</div>
+
+                <button onclick="addCart()">Add to Cart</button>
+
+            </div>
+
+
+
+            <div class="product">
+
+                <img src="/static/med_images/amoxicillin.png">
+
+                <h3>Amoxicillin</h3>
+
+                <div class="rating">⭐⭐⭐⭐☆</div>
+
+                <p>Antibiotic Capsules</p>
+
+                <div class="price">$12.00</div>
+
+                <button onclick="addCart()">Add to Cart</button>
+
+            </div>
+
+
+
+            <div class="product">
+
+                <img src="{{ url_for('static', filename='med_images/vitamin_c.png') }}">
+
+                <h3>Vitamin C</h3>
+
+                <div class="rating">⭐⭐⭐⭐⭐</div>
+
+                <p>Immune Support</p>
+
+                <div class="price">$7.40</div>
+
+                <button onclick="addCart()">Add to Cart</button>
+
+            </div>
+
+
+
+            <div class="product">
+
+                <img src="/static/med_images/inhaler.png">
+
+                <h3>Asthma Inhaler</h3>
+
+                <div class="rating">⭐⭐⭐⭐⭐</div>
+
+                <p>Respiratory Device</p>
+
+                <div class="price">$18.99</div>
+
+                <button onclick="addCart()">Add to Cart</button>
+
+            </div>
+
+
+
+            <div class="product">
+
+                <img src="/static/med_images/insulin.png">
+
+                <h3>Insulin Injection</h3>
+
+                <div class="rating">⭐⭐⭐⭐⭐</div>
+
+                <p>Diabetes Care</p>
+
+                <div class="price">$22.00</div>
+
+                <button onclick="addCart()">Add to Cart</button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="offers">
+
+        <div class="offer">
+            <h2>50% OFF</h2>
+            <p>On selected medicines</p>
+        </div>
+
+        <div class="offer">
+            <h2>Free Delivery</h2>
+            <p>Orders above $30</p>
+        </div>
+
+    </section>
+
+
+
+    <footer>
+
+        <p>© SmartStetho Pharmacy</p>
+
+    </footer>
+
+
+
+    <script>
+
+        let cart = 0
+
+        function addCart() {
+
+            cart++
+            document.getElementById("cartCount").innerText = cart
+
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+body {
+    margin: 0;
+    font-family: Segoe UI;
+    background: #f4f7ff;
+}
+
+/* header */
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+    background: #2f66ff;
+    color: white;
+}
+
+.search-box input {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    width: 220px;
+}
+
+/* hero */
+
+.hero {
+    padding: 40px;
+    background: linear-gradient(120deg, #2f66ff, #7fa2ff);
+    color: white;
+    text-align: center;
+}
+
+/* layout */
+
+.main {
+    display: flex;
+    height: 80vh;
+}
+
+/* map */
+
+#map {
+    flex: 2;
+}
+
+/* hospital panel */
+
+.hospital-panel {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* cards */
+
+.hospital-card {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hospital-card h3 {
+    margin: 0;
+}
+
+.hospital-card p {
+    font-size: 13px;
+    color: #666;
+}
+
+.hospital-card button {
+    background: #2f66ff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}

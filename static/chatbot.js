@@ -1,38 +1,23 @@
-function toggleChat() {
-
-    const box = document.getElementById("chatbox");
-
-    box.style.display = box.style.display === "none" ? "block" : "none";
-
-}
-
 async function sendMessage() {
 
-    const input = document.getElementById("input").value;
+    const input = document.getElementById("chat-input")
+    const body = document.getElementById("chat-body")
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const msg = input.value
 
+    body.innerHTML += `<div><b>You:</b> ${msg}</div>`
+
+    input.value = ""
+
+    const res = await fetch("/chat", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+    })
 
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer YOUR_OPENROUTER_API_KEY"
-        },
+    const data = await res.json()
 
-        body: JSON.stringify({
+    body.innerHTML += `<div><b>AI:</b> ${data.reply}</div>`
 
-            model: "openai/gpt-3.5-turbo",
-
-            messages: [
-                { role: "user", content: input }
-            ]
-
-        })
-
-    });
-
-    const data = await response.json();
-
-    document.getElementById("messages").innerHTML += "<div>" + data.choices[0].message.content + "</div>";
-
+    body.scrollTop = body.scrollHeight
 }

@@ -1,0 +1,141 @@
+body {
+    margin: 0;
+    font-family: Segoe UI;
+    background: #f4f7ff;
+    display: flex;
+    justify-content: center;
+}
+
+.report-container {
+
+    width: 900px;
+    max-width: 95%;
+    background: white;
+    margin: 40px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+}
+
+/* header */
+
+.report-header {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+
+}
+
+.report-header h1 {
+
+    color: #2f66ff;
+    margin: 0;
+
+}
+
+.report-id {
+
+    text-align: right;
+    font-size: 14px;
+    color: #666;
+
+}
+
+
+/* patient info */
+
+.patient-info h2 {
+
+    margin-bottom: 15px;
+
+}
+
+.grid {
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+
+}
+
+
+/* analysis */
+
+.analysis-box {
+
+    display: flex;
+    gap: 30px;
+    margin-top: 15px;
+
+}
+
+.result {
+
+    background: #eaf0ff;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 1;
+    text-align: center;
+
+}
+
+.disease {
+
+    font-size: 22px;
+    font-weight: bold;
+    color: #2f66ff;
+
+}
+
+.confidence {
+
+    margin-top: 8px;
+    color: #444;
+
+}
+
+.vitals {
+
+    flex: 1;
+
+}
+
+.vitals ul {
+
+    padding-left: 18px;
+
+}
+
+
+/* recommendation */
+
+.recommendation {
+
+    margin-top: 25px;
+
+}
+
+.recommendation p {
+
+    line-height: 1.6;
+
+}
+
+
+/* disclaimer */
+
+.disclaimer {
+
+    margin-top: 30px;
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #856404;
+
+}

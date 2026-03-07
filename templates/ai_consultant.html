@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>AI Medical Consultant</title>
+
+    <link rel="stylesheet" href="/static/ai_chat.css">
+
+</head>
+
+<body>
+
+    <div class="chat-container">
+
+        <header class="chat-header">
+
+            <div class="avatar">AI</div>
+
+            <div>
+
+                <h2>SmartStetho AI Consultant</h2>
+
+                <p>Ask medical questions</p>
+
+            </div>
+
+        </header>
+
+
+        <div class="chat-box" id="chatBox">
+
+            <div class="ai-message">
+
+                Hello 👋
+                I am your AI medical assistant.
+                How can I help you today?
+
+            </div>
+
+        </div>
+
+
+        <div class="chat-input">
+
+            <input id="messageInput" placeholder="Type your medical question...">
+
+            <button onclick="sendMessage()">Send</button>
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        async function sendMessage() {
+
+            const input = document.getElementById("messageInput")
+            const chat = document.getElementById("chatBox")
+
+            const msg = input.value.trim()
+
+            if (msg === "") return
+
+            chat.innerHTML += `<div class="user-message">${msg}</div>`
+
+            input.value = ""
+
+            chat.scrollTop = chat.scrollHeight
+
+
+            chat.innerHTML += `<div class="ai-message" id="typing">AI is typing...</div>`
+
+            chat.scrollTop = chat.scrollHeight
+
+
+            const res = await fetch("/chat", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({ message: msg })
+
+            })
+
+            const data = await res.json()
+
+            document.getElementById("typing").remove()
+
+            chat.innerHTML += `<div class="ai-message">${data.reply}</div>`
+
+            chat.scrollTop = chat.scrollHeight
+
+        }
+
+    </script>
+
+</body>
+
+</html>

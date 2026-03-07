@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Nearby Hospitals</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/hospital.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div class="logo">SmartStetho Care</div>
+        <div class="search-box">
+            <input id="search" placeholder="Search hospitals">
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>Hospitals Near You</h1>
+        <p>Automatically showing hospitals around your current location</p>
+    </section>
+
+    <div class="main">
+
+        <!-- MAP -->
+        <div id="map"></div>
+
+        <!-- HOSPITAL LIST -->
+        <div class="hospital-panel">
+            <h2>Nearby Hospitals</h2>
+            <div id="hospitalList"></div>
+        </div>
+
+    </div>
+
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+
+        let map = L.map('map').setView([0, 0], 13)
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map)
+
+
+        navigator.geolocation.getCurrentPosition(pos => {
+
+            const lat = pos.coords.latitude
+            const lon = pos.coords.longitude
+
+            map.setView([lat, lon], 14)
+
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup("You are here")
+
+
+            loadHospitals(lat, lon)
+
+        })
+
+
+        async function loadHospitals(lat, lon) {
+
+            const query = `
+[out:json];
+(
+node["amenity"="hospital"](around:5000,${lat},${lon});
+way["amenity"="hospital"](around:5000,${lat},${lon});
+relation["amenity"="hospital"](around:5000,${lat},${lon});
+);
+out center;
+`
+
+            const url = "https://overpass-api.de/api/interpreter"
+
+            const response = await fetch(url, {
+                method: "POST",
+                body: query
+            })
+
+            const data = await response.json()
+
+            const list = document.getElementById("hospitalList")
+
+            data.elements.forEach(h => {
+
+                const name = h.tags.name || "Hospital"
+
+                const lat = h.lat || h.center.lat
+                const lon = h.lon || h.center.lon
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup(name)
+
+                const card = document.createElement("div")
+
+                card.className = "hospital-card"
+
+                card.innerHTML = `
+<h3>${name}</h3>
+<p>Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}</p>
+<button onclick="openMap(${lat},${lon})">Directions</button>
+`
+
+                list.appendChild(card)
+
+            })
+
+        }
+
+
+        function openMap(lat, lon) {
+
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`)
+
+        }
+
+    </script>
+
+</body>
+
+</html>
