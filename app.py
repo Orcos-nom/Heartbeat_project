@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # ---------------- GitHub Configuration ----------------
 
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 REPO = "Orcos-nom/Heartbeat_project"
 BRANCH = "main"
 
