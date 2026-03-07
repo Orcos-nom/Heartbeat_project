@@ -31,6 +31,8 @@ def upload_to_github(file, prefix):
 
     print("\nUploading audio to GitHub...")
 
+    file.seek(0)   # <-- ADD THIS LINE
+
     content = base64.b64encode(file.read()).decode()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
